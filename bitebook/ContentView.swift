@@ -26,7 +26,7 @@ struct ContentView: View {
                     SettingsView()
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
             // Bottom tab bar
             TabsView(selectedTab: $selectedTab)
