@@ -5,14 +5,48 @@
 //  Created by Will Trojniak on 7/11/26.
 //
 
+import SwiftData
 import SwiftUI
 
 @main
 struct bitebookApp: App {
+    let container: ModelContainer
+
+    init() {
+        do {
+            container = try ModelContainer(
+                for: Ingredient.self
+            )
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
+    }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .modelContainer(container)
+                .task {
+                    seedIngredients()
+                }
         }
+    }
+
+    private func seedIngredients() {
+        let context = container.mainContext
+
+        let existingIngredients = try? context.fetch(
+            FetchDescriptor<Ingredient>()
+        )
+
+        guard existingIngredients?.isEmpty ?? true else {
+            return
+        }
+
+        for ingredient in IngredientLibrary.defaultIngredients {
+            context.insert(ingredient)
+        }
+
+        try? context.save()
     }
 }
