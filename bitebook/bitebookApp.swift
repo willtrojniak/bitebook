@@ -13,9 +13,15 @@ struct bitebookApp: App {
     let container: ModelContainer
 
     init() {
+        let schema = Schema([
+            Ingredient.self,
+            Recipe.self,
+            RecipeIngredient.self,
+        ])
+
         do {
             container = try ModelContainer(
-                for: Ingredient.self
+                for: schema
             )
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
