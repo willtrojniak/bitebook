@@ -41,15 +41,19 @@ struct bitebookApp: App {
     private func seedIngredients() {
         let context = container.mainContext
 
-        let existingIngredients = try? context.fetch(
-            FetchDescriptor<Ingredient>()
-        )
+        let existingIngredients =
+            (try? context.fetch(FetchDescriptor<Ingredient>())) ?? []
+        let existingNames = Set(existingIngredients.map { $0.name })
 
-        guard existingIngredients?.isEmpty ?? true else {
+        let newIngredients = IngredientLibrary.defaultIngredients.filter {
+            !existingNames.contains($0.name)
+        }
+
+        guard !newIngredients.isEmpty else {
             return
         }
 
-        for ingredient in IngredientLibrary.defaultIngredients {
+        for ingredient in newIngredients {
             context.insert(ingredient)
         }
 
