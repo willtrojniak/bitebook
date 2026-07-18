@@ -93,76 +93,94 @@ struct PlannerView: View {
         }.map { $0.recipe }
     }
 
+    private var weeklyPlannedMeals: [PlannedMeal] {
+        plannedMeals.filter { plannedMeal in
+            weekDates.contains { mondayStartIsoCalendar.isDate($0, inSameDayAs: plannedMeal.date) }
+        }
+    }
+
     var body: some View {
-        Grid(horizontalSpacing: 8, verticalSpacing: 8) {
-            GridRow {
-                Spacer().frame(width: 0, height: 0)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                Grid(horizontalSpacing: 8, verticalSpacing: 8) {
+                    GridRow {
+                        Spacer().frame(width: 0, height: 0)
 
-                WeekHeaderView(currentWeek: $currentWeek, weekDates: weekDates)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .gridCellColumns(7)
-            }
-            .padding(.vertical, 16)
-
-            // Header row
-            GridRow {
-                Text("")
-                    .frame(width: rowLabelWidth)
-
-                ForEach(weekDates, id: \.self) { date in
-                    VStack {
-                        Text(
-                            date.formatted(
-                                .dateTime.weekday(.abbreviated)
-                            )
-                        )
-
-                        Text(
-                            date.formatted(
-                                .dateTime.day()
-                            )
-                        )
-                        .font(.headline)
+                        WeekHeaderView(currentWeek: $currentWeek, weekDates: weekDates)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .gridCellColumns(7)
                     }
-                    .frame(maxWidth: .infinity)
-                }
-            }
+                    .padding(.vertical, 16)
 
-            // Meal rows
-            ForEach(MealType.allCases, id: \.self) { mealType in
-                GridRow {
-                    Text(mealType.rawValue)
-                        .fontWeight(.medium)
-                        .frame(width: rowLabelWidth, alignment: .center)
+                    // Header row
+                    GridRow {
+                        Text("")
+                            .frame(width: rowLabelWidth)
 
-                    ForEach(weekDates, id: \.self) { date in
-                        MealCellView(
-                            recipes: recipes(for: date, mealType: mealType),
-                            canPaste: clipboard.canPaste,
-                            onCopy: {
-                                clipboard.copy(
-                                    from: date, mealType: mealType, modelContext: modelContext)
-                            },
-                            onPaste: {
-                                clipboard.paste(
-                                    to: date, mealType: mealType, modelContext: modelContext)
-                            },
-                            onClear: {
-                                MealPlanService(modelContext: modelContext)
-                                    .setRecipes([], for: date, mealType: mealType)
+                        ForEach(weekDates, id: \.self) { date in
+                            VStack {
+                                Text(
+                                    date.formatted(
+                                        .dateTime.weekday(.abbreviated)
+                                    )
+                                )
+
+                                Text(
+                                    date.formatted(
+                                        .dateTime.day()
+                                    )
+                                )
+                                .font(.headline)
                             }
-                        )
-                        .onTapGesture {
-                            selectedMeal = MealCell(
-                                date: date,
-                                mealType: mealType
-                            )
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
+
+                    // Meal rows
+                    ForEach(MealType.allCases, id: \.self) { mealType in
+                        GridRow {
+                            Text(mealType.rawValue)
+                                .fontWeight(.medium)
+                                .frame(width: rowLabelWidth, alignment: .center)
+
+                            ForEach(weekDates, id: \.self) { date in
+                                MealCellView(
+                                    recipes: recipes(for: date, mealType: mealType),
+                                    canPaste: clipboard.canPaste,
+                                    onCopy: {
+                                        clipboard.copy(
+                                            from: date, mealType: mealType,
+                                            modelContext: modelContext)
+                                    },
+                                    onPaste: {
+                                        clipboard.paste(
+                                            to: date, mealType: mealType, modelContext: modelContext
+                                        )
+                                    },
+                                    onClear: {
+                                        MealPlanService(modelContext: modelContext)
+                                            .setRecipes([], for: date, mealType: mealType)
+                                    }
+                                )
+                                .onTapGesture {
+                                    selectedMeal = MealCell(
+                                        date: date,
+                                        mealType: mealType
+                                    )
+                                }
+                            }
                         }
                     }
                 }
+
+                Divider()
+
+                WeeklyIngredientsView(
+                    ingredients: ShoppingListService.aggregatedIngredients(for: weeklyPlannedMeals)
+                )
             }
+            .padding()
         }
-        .padding()
         .sheet(item: $selectedMeal) { meal in
             MealEditorView(date: meal.date, mealType: meal.mealType)
         }
