@@ -11,6 +11,9 @@ final class Recipe {
     @Relationship(deleteRule: .cascade)
     var ingredients: [RecipeIngredient]
 
+    @Relationship(deleteRule: .cascade, inverse: \PlannedMeal.recipe)
+    var plannedMeals: [PlannedMeal] = []
+
     init(
         name: String,
         ingredients: [RecipeIngredient]

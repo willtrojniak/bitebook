@@ -17,6 +17,7 @@ struct bitebookApp: App {
             Ingredient.self,
             Recipe.self,
             RecipeIngredient.self,
+            PlannedMeal.self,
         ])
 
         do {
@@ -32,6 +33,7 @@ struct bitebookApp: App {
         WindowGroup {
             ContentView()
                 .modelContainer(container)
+                .environment(MealClipboard())
                 .task {
                     seedIngredients()
                 }
