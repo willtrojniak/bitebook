@@ -1,6 +1,11 @@
 import Foundation
 import SwiftData
 
+struct RecipeServings {
+    let recipe: Recipe
+    let servings: Int
+}
+
 @MainActor
 final class MealPlanService {
     private let modelContext: ModelContext
@@ -16,10 +21,6 @@ final class MealPlanService {
         )
 
         return (try? modelContext.fetch(descriptor)) ?? []
-    }
-
-    func recipes(for date: Date, mealType: MealType) -> [Recipe] {
-        plannedMeals(for: date, mealType: mealType).map { $0.recipe }
     }
 
     func addRecipe(_ recipe: Recipe, to date: Date, mealType: MealType) {
@@ -46,15 +47,23 @@ final class MealPlanService {
         try? modelContext.save()
     }
 
-    func setRecipes(_ recipes: [Recipe], for date: Date, mealType: MealType) {
+    func setServings(_ servings: Int, for plannedMeal: PlannedMeal) {
+        plannedMeal.servings = max(1, servings)
+        try? modelContext.save()
+    }
+
+    func setRecipes(_ entries: [RecipeServings], for date: Date, mealType: MealType) {
         let day = calendar.startOfDay(for: date)
 
         for existing in plannedMeals(for: day, mealType: mealType) {
             modelContext.delete(existing)
         }
 
-        for recipe in recipes {
-            modelContext.insert(PlannedMeal(date: day, mealType: mealType, recipe: recipe))
+        for entry in entries {
+            modelContext.insert(
+                PlannedMeal(
+                    date: day, mealType: mealType, recipe: entry.recipe, servings: entry.servings)
+            )
         }
 
         try? modelContext.save()

@@ -23,10 +23,6 @@ struct MealEditorView: View {
         _plannedMeals = Query(filter: PlannedMeal.matching(date: date, mealType: mealType))
     }
 
-    private var assignedRecipes: [Recipe] {
-        plannedMeals.map { $0.recipe }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             VStack(alignment: .leading, spacing: 2) {
@@ -75,7 +71,7 @@ struct MealEditorView: View {
                     .popover(isPresented: $showingRecipePicker, arrowEdge: .top) {
                         RecipePickerView(
                             recipes: allRecipes,
-                            selectedRecipeIDs: Set(assignedRecipes.map { $0.id })
+                            selectedRecipeIDs: Set(plannedMeals.map { $0.recipe.id })
                         ) { recipe in
                             MealPlanService(modelContext: modelContext)
                                 .addRecipe(recipe, to: date, mealType: mealType)
@@ -84,7 +80,7 @@ struct MealEditorView: View {
                     }
                 }
 
-                if assignedRecipes.isEmpty {
+                if plannedMeals.isEmpty {
                     Text("No recipes added yet.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
@@ -92,22 +88,48 @@ struct MealEditorView: View {
                         .padding(.vertical, 16)
                 } else {
                     List {
-                        ForEach(assignedRecipes) { recipe in
+                        ForEach(plannedMeals) { plannedMeal in
                             HStack(spacing: 12) {
                                 Image(systemName: "circle.fill")
                                     .font(.system(size: 6))
                                     .foregroundStyle(.secondary)
 
-                                Text(recipe.name)
+                                Text(plannedMeal.recipe.name)
 
                                 Spacer()
+
+                                HStack(spacing: 6) {
+                                    Picker(
+                                        "Servings",
+                                        selection: Binding(
+                                            get: { plannedMeal.servings },
+                                            set: { newValue in
+                                                MealPlanService(modelContext: modelContext)
+                                                    .setServings(newValue, for: plannedMeal)
+                                            }
+                                        )
+                                    ) {
+                                        ForEach(1...8, id: \.self) { count in
+                                            Text("\(count)").tag(count)
+                                        }
+                                    }
+                                    .labelsHidden()
+                                    .pickerStyle(.menu)
+                                    .frame(width: 60)
+
+                                    Text(plannedMeal.servings == 1 ? "serving" : "servings")
+                                        .font(.callout)
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 56, alignment: .leading)
+                                }
                             }
                             .padding(.vertical, 2)
                             .padding(.trailing, 8)
                             .swipeActions {
                                 Button("Remove", systemImage: "trash", role: .destructive) {
                                     MealPlanService(modelContext: modelContext)
-                                        .removeRecipe(recipe, from: date, mealType: mealType)
+                                        .removeRecipe(
+                                            plannedMeal.recipe, from: date, mealType: mealType)
                                 }
                             }
                         }
