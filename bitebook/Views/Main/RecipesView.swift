@@ -3,15 +3,22 @@ import SwiftUI
 
 struct RecipesView: View {
     @State private var showingCreateRecipe = false
+
     var body: some View {
-        Button {
-            showingCreateRecipe = !showingCreateRecipe
-        } label: {
-            Text("New Recipe")
-        }.sheet(isPresented: $showingCreateRecipe) {
+        NavigationStack {
+            RecipeListView()
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            showingCreateRecipe = true
+                        } label: {
+                            Label("New Recipe", systemImage: "plus")
+                        }
+                    }
+                }
+        }
+        .sheet(isPresented: $showingCreateRecipe) {
             RecipeEditorView()
         }
-
-        RecipeListView()
     }
 }
