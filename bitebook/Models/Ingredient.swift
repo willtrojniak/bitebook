@@ -5,8 +5,39 @@ enum UnitOfMeasurement: String, Codable, CaseIterable {
     case unit, standard
 }
 
+enum UnitFamily {
+    case weight, volume
+}
+
 enum StandardUnit: String, Codable, CaseIterable {
     case gram, ounce, pound, cup, tablespoon, teaspoon, milliliter
+
+    var family: UnitFamily {
+        switch self {
+        case .gram, .ounce, .pound: return .weight
+        case .cup, .tablespoon, .teaspoon, .milliliter: return .volume
+        }
+    }
+
+    // Conversion factor into the family's base unit (grams for weight, milliliters for volume).
+    private var baseUnitConversionFactor: Double {
+        switch self {
+        case .gram: return 1
+        case .ounce: return 28.3495
+        case .pound: return 453.592
+        case .milliliter: return 1
+        case .teaspoon: return 4.92892
+        case .tablespoon: return 14.7868
+        case .cup: return 236.588
+        }
+    }
+
+    // nil when `other` is in a different family (e.g. weight vs. volume) — those aren't
+    // convertible without ingredient-specific density data this app doesn't model.
+    func convert(_ quantity: Double, to other: StandardUnit) -> Double? {
+        guard family == other.family else { return nil }
+        return quantity * baseUnitConversionFactor / other.baseUnitConversionFactor
+    }
 
     func label(for quantity: Double) -> String {
         quantity == 1 ? rawValue : rawValue + "s"
