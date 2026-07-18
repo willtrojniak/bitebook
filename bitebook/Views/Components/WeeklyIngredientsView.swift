@@ -21,8 +21,10 @@ struct WeeklyIngredientsView: View {
                         HStack {
                             Text(entry.ingredient.name)
                             Spacer()
-                            Text(entry.quantity.formatted())
-                                .foregroundStyle(.secondary)
+                            Text(
+                                "\(entry.quantity.formatted()) \(entry.ingredient.unit.label(for: entry.quantity))"
+                            )
+                            .foregroundStyle(.secondary)
                         }
                         .padding(.vertical, 6)
 

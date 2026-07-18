@@ -50,6 +50,10 @@ struct IngredientPickerView: View {
                         Text(ingredient.name)
                             .foregroundStyle(isSelected ? .secondary : .primary)
 
+                        Text("· \(ingredient.unit.rawValue)")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+
                         Spacer()
 
                         Image(systemName: isSelected ? "checkmark.circle.fill" : "plus.circle")

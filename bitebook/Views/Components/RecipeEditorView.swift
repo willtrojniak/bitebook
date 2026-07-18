@@ -111,6 +111,11 @@ struct RecipeEditorView: View {
                                 .textFieldStyle(.roundedBorder)
                                 .multilineTextAlignment(.trailing)
                                 .frame(width: 64)
+
+                                Text(item.ingredient.unit.label(for: item.quantity))
+                                    .font(.callout)
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 70, alignment: .leading)
                             }
                             .padding(.vertical, 2)
                             .padding(.trailing, 8)
