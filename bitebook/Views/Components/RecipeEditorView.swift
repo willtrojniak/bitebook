@@ -114,7 +114,7 @@ struct RecipeEditorView: View {
 
                                 Text(item.ingredient.unit.label(for: item.quantity))
                                     .font(.callout)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(item.quantity <= 0 ? .red : .secondary)
                                     .frame(width: 70, alignment: .leading)
                             }
                             .padding(.vertical, 2)
@@ -143,7 +143,7 @@ struct RecipeEditorView: View {
                 }
                 .keyboardShortcut(.defaultAction)
                 .buttonStyle(.borderedProminent)
-                .disabled(recipeName.isEmpty)
+                .disabled(recipeName.isEmpty || hasInvalidQuantities)
             }
         }
         .padding(24)
@@ -159,6 +159,10 @@ struct RecipeEditorView: View {
         } message: {
             Text("This will remove the recipe and its ingredients.")
         }
+    }
+
+    private var hasInvalidQuantities: Bool {
+        selectedIngredients.contains { $0.quantity <= 0 }
     }
 
     private func addIngredient(_ ingredient: Ingredient) {

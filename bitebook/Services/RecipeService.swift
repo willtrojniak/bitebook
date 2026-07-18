@@ -21,13 +21,19 @@ final class RecipeService {
             }
 
             recipe.ingredients = ingredients.map {
-                RecipeIngredient(ingredient: $0.ingredient, quantity: $0.quantity)
+                RecipeIngredient(
+                    ingredient: $0.ingredient,
+                    quantity: max($0.quantity, .leastNonzeroMagnitude)
+                )
             }
         } else {
             let recipe = Recipe(
                 name: name,
                 ingredients: ingredients.map {
-                    RecipeIngredient(ingredient: $0.ingredient, quantity: $0.quantity)
+                    RecipeIngredient(
+                    ingredient: $0.ingredient,
+                    quantity: max($0.quantity, .leastNonzeroMagnitude)
+                )
                 }
             )
 
