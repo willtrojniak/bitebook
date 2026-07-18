@@ -33,7 +33,9 @@ struct RecipeListView: View {
                     }
                 }
                 .listStyle(.inset)
-                .alternatingRowBackgrounds()
+                #if MACOS
+                    .alternatingRowBackgrounds()
+                #endif
             }
         }
         .navigationTitle("Recipes")
