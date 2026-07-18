@@ -1,8 +1,12 @@
 import Foundation
 import SwiftData
 
-enum MeasurementUnit: String, Codable, CaseIterable {
-    case gram, ounce, pound, slice, unit, cup, tablespoon, teaspoon, clove, milliliter, can
+enum UnitOfMeasurement: String, Codable, CaseIterable {
+    case unit, standard
+}
+
+enum StandardUnit: String, Codable, CaseIterable {
+    case gram, ounce, pound, cup, tablespoon, teaspoon, milliliter
 
     func label(for quantity: Double) -> String {
         quantity == 1 ? rawValue : rawValue + "s"
@@ -15,84 +19,111 @@ final class Ingredient {
     var id: UUID
 
     var name: String
-    var unitRaw: String
+    var unitOfMeasurementRaw: String
+    var defaultStandardUnitRaw: String?
 
-    var unit: MeasurementUnit {
-        get { MeasurementUnit(rawValue: unitRaw) ?? .unit }
-        set { unitRaw = newValue.rawValue }
+    var unitOfMeasurement: UnitOfMeasurement {
+        get { UnitOfMeasurement(rawValue: unitOfMeasurementRaw) ?? .unit }
+        set { unitOfMeasurementRaw = newValue.rawValue }
+    }
+
+    var defaultStandardUnit: StandardUnit? {
+        get { defaultStandardUnitRaw.flatMap { StandardUnit(rawValue: $0) } }
+        set { defaultStandardUnitRaw = newValue?.rawValue }
     }
 
     init(
         name: String,
-        unit: MeasurementUnit
+        unitOfMeasurement: UnitOfMeasurement,
+        defaultStandardUnit: StandardUnit? = nil
     ) {
+        precondition(
+            (unitOfMeasurement == .standard) == (defaultStandardUnit != nil),
+            "defaultStandardUnit must be set if and only if unitOfMeasurement is .standard"
+        )
+
         self.id = UUID()
         self.name = name
-        self.unitRaw = unit.rawValue
+        self.unitOfMeasurementRaw = unitOfMeasurement.rawValue
+        self.defaultStandardUnitRaw = defaultStandardUnit?.rawValue
+    }
+
+    // nil when this ingredient's own name doubles as the unit (unitOfMeasurement == .unit)
+    func unitLabel(for quantity: Double) -> String? {
+        guard unitOfMeasurement == .standard else { return nil }
+        return defaultStandardUnit?.label(for: quantity)
     }
 }
 
 struct IngredientLibrary {
     static let defaultIngredients: [Ingredient] = [
         // Proteins
-        Ingredient(name: "Chicken Breast", unit: .pound),
-        Ingredient(name: "Chicken Thigh", unit: .pound),
-        Ingredient(name: "Ground Beef", unit: .pound),
-        Ingredient(name: "Ground Turkey", unit: .pound),
-        Ingredient(name: "Pork Chop", unit: .unit),
-        Ingredient(name: "Bacon", unit: .slice),
-        Ingredient(name: "Salmon", unit: .ounce),
-        Ingredient(name: "Shrimp", unit: .ounce),
-        Ingredient(name: "Tofu", unit: .ounce),
-        Ingredient(name: "Egg", unit: .unit),
+        Ingredient(
+            name: "Chicken Breast", unitOfMeasurement: .standard, defaultStandardUnit: .pound),
+        Ingredient(
+            name: "Chicken Thigh", unitOfMeasurement: .standard, defaultStandardUnit: .pound),
+        Ingredient(name: "Ground Beef", unitOfMeasurement: .standard, defaultStandardUnit: .pound),
+        Ingredient(
+            name: "Ground Turkey", unitOfMeasurement: .standard, defaultStandardUnit: .pound),
+        Ingredient(name: "Pork Chop", unitOfMeasurement: .unit),
+        Ingredient(name: "Bacon", unitOfMeasurement: .unit),
+        Ingredient(name: "Salmon", unitOfMeasurement: .standard, defaultStandardUnit: .ounce),
+        Ingredient(name: "Shrimp", unitOfMeasurement: .standard, defaultStandardUnit: .ounce),
+        Ingredient(name: "Tofu", unitOfMeasurement: .standard, defaultStandardUnit: .ounce),
+        Ingredient(name: "Egg", unitOfMeasurement: .unit),
 
         // Grains & Starches
-        Ingredient(name: "Rice", unit: .cup),
-        Ingredient(name: "Quinoa", unit: .cup),
-        Ingredient(name: "Pasta", unit: .ounce),
-        Ingredient(name: "Bread", unit: .slice),
-        Ingredient(name: "Tortilla", unit: .unit),
-        Ingredient(name: "Potato", unit: .unit),
-        Ingredient(name: "Sweet Potato", unit: .unit),
-        Ingredient(name: "Oats", unit: .cup),
+        Ingredient(name: "Rice", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
+        Ingredient(name: "Quinoa", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
+        Ingredient(name: "Pasta", unitOfMeasurement: .standard, defaultStandardUnit: .ounce),
+        Ingredient(name: "Bread", unitOfMeasurement: .unit),
+        Ingredient(name: "Tortilla", unitOfMeasurement: .unit),
+        Ingredient(name: "Potato", unitOfMeasurement: .unit),
+        Ingredient(name: "Sweet Potato", unitOfMeasurement: .unit),
+        Ingredient(name: "Oats", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
 
         // Vegetables
-        Ingredient(name: "Broccoli", unit: .cup),
-        Ingredient(name: "Carrot", unit: .unit),
-        Ingredient(name: "Onion", unit: .unit),
-        Ingredient(name: "Garlic", unit: .clove),
-        Ingredient(name: "Bell Pepper", unit: .unit),
-        Ingredient(name: "Spinach", unit: .cup),
-        Ingredient(name: "Lettuce", unit: .cup),
-        Ingredient(name: "Tomato", unit: .unit),
-        Ingredient(name: "Cucumber", unit: .unit),
-        Ingredient(name: "Zucchini", unit: .unit),
-        Ingredient(name: "Mushroom", unit: .cup),
-        Ingredient(name: "Celery", unit: .unit),
+        Ingredient(name: "Broccoli", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
+        Ingredient(name: "Carrot", unitOfMeasurement: .unit),
+        Ingredient(name: "Onion", unitOfMeasurement: .unit),
+        Ingredient(name: "Garlic", unitOfMeasurement: .unit),
+        Ingredient(name: "Bell Pepper", unitOfMeasurement: .unit),
+        Ingredient(name: "Spinach", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
+        Ingredient(name: "Lettuce", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
+        Ingredient(name: "Tomato", unitOfMeasurement: .unit),
+        Ingredient(name: "Cucumber", unitOfMeasurement: .unit),
+        Ingredient(name: "Zucchini", unitOfMeasurement: .unit),
+        Ingredient(name: "Mushroom", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
+        Ingredient(name: "Celery", unitOfMeasurement: .unit),
 
         // Fruits
-        Ingredient(name: "Apple", unit: .unit),
-        Ingredient(name: "Banana", unit: .unit),
-        Ingredient(name: "Lemon", unit: .unit),
-        Ingredient(name: "Avocado", unit: .unit),
+        Ingredient(name: "Apple", unitOfMeasurement: .unit),
+        Ingredient(name: "Banana", unitOfMeasurement: .unit),
+        Ingredient(name: "Lemon", unitOfMeasurement: .unit),
+        Ingredient(name: "Avocado", unitOfMeasurement: .unit),
 
         // Dairy
-        Ingredient(name: "Milk", unit: .cup),
-        Ingredient(name: "Butter", unit: .tablespoon),
-        Ingredient(name: "Cheddar Cheese", unit: .cup),
-        Ingredient(name: "Mozzarella Cheese", unit: .cup),
-        Ingredient(name: "Parmesan Cheese", unit: .tablespoon),
-        Ingredient(name: "Greek Yogurt", unit: .cup),
+        Ingredient(name: "Milk", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
+        Ingredient(name: "Butter", unitOfMeasurement: .standard, defaultStandardUnit: .tablespoon),
+        Ingredient(name: "Cheddar Cheese", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
+        Ingredient(
+            name: "Mozzarella Cheese", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
+        Ingredient(
+            name: "Parmesan Cheese", unitOfMeasurement: .standard, defaultStandardUnit: .tablespoon),
+        Ingredient(name: "Greek Yogurt", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
 
         // Pantry
-        Ingredient(name: "Olive Oil", unit: .tablespoon),
-        Ingredient(name: "Salt", unit: .teaspoon),
-        Ingredient(name: "Black Pepper", unit: .teaspoon),
-        Ingredient(name: "Soy Sauce", unit: .tablespoon),
-        Ingredient(name: "Flour", unit: .cup),
-        Ingredient(name: "Sugar", unit: .cup),
-        Ingredient(name: "Chicken Broth", unit: .cup),
-        Ingredient(name: "Canned Tomatoes", unit: .can),
-        Ingredient(name: "Black Beans", unit: .can),
+        Ingredient(
+            name: "Olive Oil", unitOfMeasurement: .standard, defaultStandardUnit: .tablespoon),
+        Ingredient(name: "Salt", unitOfMeasurement: .standard, defaultStandardUnit: .teaspoon),
+        Ingredient(
+            name: "Black Pepper", unitOfMeasurement: .standard, defaultStandardUnit: .teaspoon),
+        Ingredient(
+            name: "Soy Sauce", unitOfMeasurement: .standard, defaultStandardUnit: .tablespoon),
+        Ingredient(name: "Flour", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
+        Ingredient(name: "Sugar", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
+        Ingredient(name: "Chicken Broth", unitOfMeasurement: .standard, defaultStandardUnit: .cup),
+        Ingredient(name: "Canned Tomatoes", unitOfMeasurement: .unit),
+        Ingredient(name: "Black Beans", unitOfMeasurement: .unit),
     ]
 }

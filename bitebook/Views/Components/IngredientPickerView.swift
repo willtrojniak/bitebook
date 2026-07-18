@@ -50,9 +50,11 @@ struct IngredientPickerView: View {
                         Text(ingredient.name)
                             .foregroundStyle(isSelected ? .secondary : .primary)
 
-                        Text("· \(ingredient.unit.rawValue)")
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
+                        if let unitLabel = ingredient.unitLabel(for: 1) {
+                            Text("· \(unitLabel)")
+                                .font(.callout)
+                                .foregroundStyle(.secondary)
+                        }
 
                         Spacer()
 

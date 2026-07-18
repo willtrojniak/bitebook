@@ -112,7 +112,7 @@ struct RecipeEditorView: View {
                                 .multilineTextAlignment(.trailing)
                                 .frame(width: 64)
 
-                                Text(item.ingredient.unit.label(for: item.quantity))
+                                Text(item.ingredient.unitLabel(for: item.quantity) ?? "")
                                     .font(.callout)
                                     .foregroundStyle(item.quantity <= 0 ? .red : .secondary)
                                     .frame(width: 70, alignment: .leading)
