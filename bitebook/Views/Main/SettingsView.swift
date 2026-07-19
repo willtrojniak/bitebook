@@ -2,7 +2,15 @@ import SwiftUI
 
 struct SettingsView: View {
     var body: some View {
-        Text("Settings")
-            .font(.largeTitle)
+        NavigationStack {
+            List {
+                NavigationLink {
+                    IngredientLibraryView()
+                } label: {
+                    Label("Ingredients", systemImage: "carrot")
+                }
+            }
+            .navigationTitle("Settings")
+        }
     }
 }

@@ -73,6 +73,11 @@ final class Ingredient {
     private var unitToMassConversionFactor: Double?
     private var unitToVolumeConversionFactor: Double?
 
+    // Read-only public access to the two private factors above, for UI that needs to
+    // display/prefill them (e.g. an ingredient editor) without exposing direct mutation.
+    var unitToMass: Double? { unitToMassConversionFactor }
+    var unitToVolume: Double? { unitToVolumeConversionFactor }
+
     init(name: String, measurement: IngredientMeasurement) {
         self.id = UUID()
         self.name = name
@@ -86,6 +91,42 @@ final class Ingredient {
             self.defaultUnitOfMeasurement = .standardMass(unit: defaultMassUnit)
         case (.standardVolume(default: let defaultVolumeUnit)):
             self.defaultUnitOfMeasurement = .standardVolume(unit: defaultVolumeUnit)
+        }
+    }
+
+    func update(name: String, measurement: IngredientMeasurement) {
+        self.name = name
+
+        switch measurement {
+        case (.unit(unitToMass: let toMass, unitToVolume: let toVolume)):
+            self.defaultUnitOfMeasurement = .unit
+            self.unitToMassConversionFactor = toMass
+            self.unitToVolumeConversionFactor = toVolume
+        case (.standardMass(default: let defaultMassUnit)):
+            self.defaultUnitOfMeasurement = .standardMass(unit: defaultMassUnit)
+            self.unitToMassConversionFactor = nil
+            self.unitToVolumeConversionFactor = nil
+        case (.standardVolume(default: let defaultVolumeUnit)):
+            self.defaultUnitOfMeasurement = .standardVolume(unit: defaultVolumeUnit)
+            self.unitToMassConversionFactor = nil
+            self.unitToVolumeConversionFactor = nil
+        }
+    }
+
+    var measurementSummary: String {
+        switch defaultUnitOfMeasurement {
+        case .standardMass(let unit):
+            return "Standard · \(unit.rawValue)"
+        case .standardVolume(let unit):
+            return "Standard · \(unit.rawValue)"
+        case .unit:
+            if let mass = unitToMassConversionFactor {
+                return "Counted individually · ≈\(mass.formatted())g each"
+            }
+            if let volume = unitToVolumeConversionFactor {
+                return "Counted individually · ≈\(volume.formatted())mL each"
+            }
+            return "Counted individually"
         }
     }
 
