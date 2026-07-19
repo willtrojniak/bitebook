@@ -7,6 +7,7 @@ private struct DraftRecipeIngredient: Identifiable {
     let ingredient: Ingredient
 
     var quantity: Double
+    var unitOfMeasurement: UnitOfMeasurement
 }
 
 struct RecipeEditorView: View {
@@ -30,7 +31,8 @@ struct RecipeEditorView: View {
             initialValue: recipe?.ingredients.map {
                 DraftRecipeIngredient(
                     ingredient: $0.ingredient,
-                    quantity: $0.quantity
+                    quantity: $0.quantity,
+                    unitOfMeasurement: $0.unitOfMeasurement
                 )
             } ?? []
         )
@@ -111,11 +113,20 @@ struct RecipeEditorView: View {
                                 .textFieldStyle(.roundedBorder)
                                 .multilineTextAlignment(.trailing)
                                 .frame(width: 64)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(item.quantity <= 0 ? .red : .clear, lineWidth: 1.5)
+                                )
 
-                                Text(item.ingredient.unitLabel(for: item.quantity) ?? "")
-                                    .font(.callout)
-                                    .foregroundStyle(item.quantity <= 0 ? .red : .secondary)
-                                    .frame(width: 70, alignment: .leading)
+                                Picker("", selection: $item.unitOfMeasurement) {
+                                    ForEach(item.ingredient.validUnitsOfMeasurement, id: \.self) {
+                                        unit in
+                                        Text(unit.label(for: item.quantity)).tag(unit)
+                                    }
+                                }
+                                .labelsHidden()
+                                .pickerStyle(.menu)
+                                .frame(width: 100)
                             }
                             .padding(.vertical, 2)
                             .padding(.trailing, 8)
@@ -178,6 +189,7 @@ struct RecipeEditorView: View {
             DraftRecipeIngredient(
                 ingredient: ingredient,
                 quantity: 1,
+                unitOfMeasurement: ingredient.defaultUnitOfMeasurement
             )
         )
     }
@@ -190,7 +202,9 @@ struct RecipeEditorView: View {
         RecipeService(modelContext: modelContext).save(
             recipe: recipe,
             name: recipeName,
-            ingredients: selectedIngredients.map { ($0.ingredient, $0.quantity) }
+            ingredients: selectedIngredients.map {
+                ($0.ingredient, $0.quantity, $0.unitOfMeasurement)
+            }
         )
         dismiss()
     }

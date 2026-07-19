@@ -32,14 +32,22 @@ final class RecipeIngredient {
 
     var ingredient: Ingredient
     var quantity: Double
+    var unitOfMeasurement: UnitOfMeasurement
 
     init(
         ingredient: Ingredient,
-        quantity: Double
+        quantity: Double,
+        unitOfMeasurement: UnitOfMeasurement
     ) {
+        precondition(
+            ingredient.convertQuantity(
+                1, from: ingredient.defaultUnitOfMeasurement, to: unitOfMeasurement) != nil,
+            "UnitOfMeasurement must be a unit this ingredient has a conversion factor for")
+
         self.id = UUID()
 
         self.ingredient = ingredient
         self.quantity = quantity
+        self.unitOfMeasurement = unitOfMeasurement
     }
 }

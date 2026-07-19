@@ -22,12 +22,7 @@ struct WeeklyIngredientsView: View {
                             Text(entry.ingredient.name)
                             Spacer()
                             Text(
-                                [
-                                    entry.quantity.formatted(),
-                                    entry.ingredient.unitLabel(for: entry.quantity),
-                                ]
-                                .compactMap { $0 }
-                                .joined(separator: " ")
+                                entry.ingredient.formattedQuantity(entry.quantity)
                             )
                             .foregroundStyle(.secondary)
                         }

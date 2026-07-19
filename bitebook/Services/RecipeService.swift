@@ -11,7 +11,7 @@ final class RecipeService {
     func save(
         recipe: Recipe?,
         name: String,
-        ingredients: [(ingredient: Ingredient, quantity: Double)]
+        ingredients: [(ingredient: Ingredient, quantity: Double, unit: UnitOfMeasurement)]
     ) {
         if let recipe {
             recipe.name = name
@@ -23,7 +23,8 @@ final class RecipeService {
             recipe.ingredients = ingredients.map {
                 RecipeIngredient(
                     ingredient: $0.ingredient,
-                    quantity: max($0.quantity, .leastNonzeroMagnitude)
+                    quantity: max($0.quantity, .leastNonzeroMagnitude),
+                    unitOfMeasurement: $0.unit
                 )
             }
         } else {
@@ -31,9 +32,10 @@ final class RecipeService {
                 name: name,
                 ingredients: ingredients.map {
                     RecipeIngredient(
-                    ingredient: $0.ingredient,
-                    quantity: max($0.quantity, .leastNonzeroMagnitude)
-                )
+                        ingredient: $0.ingredient,
+                        quantity: max($0.quantity, .leastNonzeroMagnitude),
+                        unitOfMeasurement: $0.unit
+                    )
                 }
             )
 

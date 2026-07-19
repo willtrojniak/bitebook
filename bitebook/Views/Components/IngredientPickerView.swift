@@ -50,11 +50,9 @@ struct IngredientPickerView: View {
                         Text(ingredient.name)
                             .foregroundStyle(isSelected ? .secondary : .primary)
 
-                        if let unitLabel = ingredient.unitLabel(for: 1) {
-                            Text("· \(unitLabel)")
-                                .font(.callout)
-                                .foregroundStyle(.secondary)
-                        }
+                        Text("· \(ingredient.defaultUnitOfMeasurement.label(for: 1))")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
 
                         Spacer()
 

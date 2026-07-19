@@ -13,9 +13,17 @@ enum ShoppingListService {
 
         for plannedMeal in plannedMeals {
             for recipeIngredient in plannedMeal.recipe.ingredients {
-                let amount = recipeIngredient.quantity * Double(plannedMeal.servings)
-                let id = recipeIngredient.ingredient.id
-                totals[id, default: (recipeIngredient.ingredient, 0)].quantity += amount
+                let rawAmount = recipeIngredient.quantity * Double(plannedMeal.servings)
+                let ingredient = recipeIngredient.ingredient
+
+                let amount =
+                    ingredient.convertQuantity(
+                        rawAmount,
+                        from: recipeIngredient.unitOfMeasurement,
+                        to: ingredient.defaultUnitOfMeasurement
+                    ) ?? rawAmount
+
+                totals[ingredient.id, default: (ingredient, 0)].quantity += amount
             }
         }
 
