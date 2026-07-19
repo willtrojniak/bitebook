@@ -23,6 +23,12 @@ struct MealEditorView: View {
         _plannedMeals = Query(filter: PlannedMeal.matching(date: date, mealType: mealType))
     }
 
+    private var sortedPlannedMeals: [PlannedMeal] {
+        plannedMeals.sorted {
+            $0.recipe.name.localizedCaseInsensitiveCompare($1.recipe.name) == .orderedAscending
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             VStack(alignment: .leading, spacing: 2) {
@@ -88,7 +94,7 @@ struct MealEditorView: View {
                         .padding(.vertical, 16)
                 } else {
                     List {
-                        ForEach(plannedMeals) { plannedMeal in
+                        ForEach(sortedPlannedMeals) { plannedMeal in
                             HStack(spacing: 12) {
                                 Image(systemName: "circle.fill")
                                     .font(.system(size: 6))

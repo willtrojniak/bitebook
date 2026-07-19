@@ -90,7 +90,9 @@ struct PlannerView: View {
     private func recipes(for date: Date, mealType: MealType) -> [Recipe] {
         plannedMeals.filter {
             mondayStartIsoCalendar.isDate($0.date, inSameDayAs: date) && $0.mealType == mealType
-        }.map { $0.recipe }
+        }
+        .map { $0.recipe }
+        .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
     private var weeklyPlannedMeals: [PlannedMeal] {

@@ -10,6 +10,17 @@ struct IngredientLibraryView: View {
     @State private var ingredientToEdit: Ingredient?
     @State private var showingCreateIngredient = false
     @State private var blockedDeletionRecipeNames: [String]?
+    @State private var searchText = ""
+
+    private var filteredIngredients: [Ingredient] {
+        if searchText.isEmpty {
+            return ingredients
+        }
+
+        return ingredients.filter {
+            $0.name.localizedCaseInsensitiveContains(searchText)
+        }
+    }
 
     var body: some View {
         Group {
@@ -19,8 +30,10 @@ struct IngredientLibraryView: View {
                     systemImage: "carrot",
                     description: Text("Add an ingredient to get started.")
                 )
+            } else if filteredIngredients.isEmpty {
+                ContentUnavailableView.search(text: searchText)
             } else {
-                List(ingredients) { ingredient in
+                List(filteredIngredients) { ingredient in
                     Button {
                         ingredientToEdit = ingredient
                     } label: {
@@ -45,6 +58,7 @@ struct IngredientLibraryView: View {
             }
         }
         .navigationTitle("Ingredients")
+        .searchable(text: $searchText, prompt: "Search Ingredients")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
