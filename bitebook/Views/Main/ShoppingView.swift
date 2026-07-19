@@ -1,6 +1,17 @@
 import SwiftData
 import SwiftUI
 
+// A plain-value snapshot of a row's displayed content. List rows read only from this —
+// never live properties off a ShoppingListItem — so a bulk delete (e.g. "Clear Checked")
+// that removes several rows in one update can't crash mid-diff/animation by touching a
+// model object whose backing data has already been deleted.
+private struct ShoppingRow: Identifiable {
+    let id: UUID
+    let ingredientName: String
+    let quantityLabel: String
+    let isChecked: Bool
+}
+
 struct ShoppingView: View {
     @Environment(\.modelContext) private var modelContext
 
@@ -38,14 +49,24 @@ struct ShoppingView: View {
         }
     }
 
-    private var sortedItems: [ShoppingListItem] {
-        shoppingListItems.sorted {
-            if $0.isChecked != $1.isChecked {
-                return !$0.isChecked
+    private var sortedRows: [ShoppingRow] {
+        shoppingListItems
+            .sorted {
+                if $0.isChecked != $1.isChecked {
+                    return !$0.isChecked
+                }
+                return $0.ingredient.name.localizedCaseInsensitiveCompare($1.ingredient.name)
+                    == .orderedAscending
             }
-            return $0.ingredient.name.localizedCaseInsensitiveCompare($1.ingredient.name)
-                == .orderedAscending
-        }
+            .map {
+                ShoppingRow(
+                    id: $0.id,
+                    ingredientName: $0.ingredient.name,
+                    quantityLabel:
+                        "\($0.quantity.formatted(.number.precision(.fractionLength(0...3)))) \($0.unitOfMeasurement.label(for: $0.quantity))",
+                    isChecked: $0.isChecked
+                )
+            }
     }
 
     private var hasCheckedItems: Bool {
@@ -63,34 +84,32 @@ struct ShoppingView: View {
                             "Add this week's ingredients or add an item to get started.")
                     )
                 } else {
-                    List(sortedItems) { item in
+                    List(sortedRows) { row in
                         Button {
-                            toggleChecked(item)
+                            toggleChecked(row)
                         } label: {
                             HStack(spacing: 12) {
                                 Image(
-                                    systemName: item.isChecked
+                                    systemName: row.isChecked
                                         ? "checkmark.circle.fill" : "circle"
                                 )
-                                .foregroundStyle(item.isChecked ? .green : .secondary)
+                                .foregroundStyle(row.isChecked ? .green : .secondary)
 
-                                Text(item.ingredient.name)
-                                    .strikethrough(item.isChecked)
-                                    .foregroundStyle(item.isChecked ? .secondary : .primary)
+                                Text(row.ingredientName)
+                                    .strikethrough(row.isChecked)
+                                    .foregroundStyle(row.isChecked ? .secondary : .primary)
 
                                 Spacer()
 
-                                Text(
-                                    "\(item.quantity.formatted(.number.precision(.fractionLength(0...3)))) \(item.unitOfMeasurement.label(for: item.quantity))"
-                                )
-                                .foregroundStyle(.secondary)
+                                Text(row.quantityLabel)
+                                    .foregroundStyle(.secondary)
                             }
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                         .swipeActions {
                             Button("Delete", systemImage: "trash", role: .destructive) {
-                                delete(item)
+                                delete(row)
                             }
                         }
                     }
@@ -130,11 +149,13 @@ struct ShoppingView: View {
         }
     }
 
-    private func toggleChecked(_ item: ShoppingListItem) {
+    private func toggleChecked(_ row: ShoppingRow) {
+        guard let item = shoppingListItems.first(where: { $0.id == row.id }) else { return }
         ShoppingListItemService(modelContext: modelContext).toggleChecked(item)
     }
 
-    private func delete(_ item: ShoppingListItem) {
+    private func delete(_ row: ShoppingRow) {
+        guard let item = shoppingListItems.first(where: { $0.id == row.id }) else { return }
         ShoppingListItemService(modelContext: modelContext).delete(item)
     }
 
