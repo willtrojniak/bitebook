@@ -83,7 +83,6 @@ struct RecipeEditorView: View {
                         ) { ingredient in
                             addIngredient(ingredient)
                         }
-                        .frame(width: 280, height: 320)
                     }
                 }
 

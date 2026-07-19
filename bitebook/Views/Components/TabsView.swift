@@ -21,19 +21,19 @@ struct TabsView: View {
             }
 
             TabButton(
-                title: "Recipes",
-                systemImage: "book.pages",
-                selected: selectedTab == .recipes
-            ) {
-                selectedTab = .recipes
-            }
-
-            TabButton(
                 title: "Shopping",
                 systemImage: "cart",
                 selected: selectedTab == .shopping
             ) {
                 selectedTab = .shopping
+            }
+
+            TabButton(
+                title: "Recipes",
+                systemImage: "book.pages",
+                selected: selectedTab == .recipes
+            ) {
+                selectedTab = .recipes
             }
 
             TabButton(

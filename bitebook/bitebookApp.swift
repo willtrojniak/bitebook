@@ -18,6 +18,7 @@ struct bitebookApp: App {
             Recipe.self,
             RecipeIngredient.self,
             PlannedMeal.self,
+            ShoppingListItem.self,
         ])
 
         do {

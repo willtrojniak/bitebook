@@ -12,14 +12,22 @@ final class IngredientLibraryService {
         []
     }
 
-    func save(ingredient: Ingredient?, name: String, measurement: IngredientMeasurement) {
+    @discardableResult
+    func save(ingredient: Ingredient?, name: String, measurement: IngredientMeasurement)
+        -> Ingredient
+    {
+        let saved: Ingredient
         if let ingredient {
             ingredient.update(name: name, measurement: measurement)
+            saved = ingredient
         } else {
-            modelContext.insert(Ingredient(name: name, measurement: measurement))
+            let newIngredient = Ingredient(name: name, measurement: measurement)
+            modelContext.insert(newIngredient)
+            saved = newIngredient
         }
 
         try? modelContext.save()
+        return saved
     }
 
     func delete(_ ingredient: Ingredient) {

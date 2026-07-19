@@ -17,6 +17,7 @@ struct IngredientEditorView: View {
     private var allIngredients: [Ingredient]
 
     var ingredient: Ingredient? = nil
+    var onSave: ((Ingredient) -> Void)? = nil
 
     @State private var name: String
     @State private var kind: MeasurementKind
@@ -25,9 +26,10 @@ struct IngredientEditorView: View {
     @State private var unitToMassText: String
     @State private var unitToVolumeText: String
 
-    init(ingredient: Ingredient? = nil) {
+    init(ingredient: Ingredient? = nil, initialName: String = "", onSave: ((Ingredient) -> Void)? = nil) {
         self.ingredient = ingredient
-        _name = State(initialValue: ingredient?.name ?? "")
+        self.onSave = onSave
+        _name = State(initialValue: ingredient?.name ?? initialName)
 
         switch ingredient?.defaultUnitOfMeasurement {
         case .standardMass(let unit):
@@ -199,8 +201,9 @@ struct IngredientEditorView: View {
             measurement = .standardVolume(default: volumeUnit)
         }
 
-        IngredientLibraryService(modelContext: modelContext).save(
+        let saved = IngredientLibraryService(modelContext: modelContext).save(
             ingredient: ingredient, name: trimmedName, measurement: measurement)
+        onSave?(saved)
         dismiss()
     }
 }
