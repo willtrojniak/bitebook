@@ -16,8 +16,15 @@ run-device: build-device
 	@device_id=$$(xcrun devicectl list devices 2>/dev/null | awk '/connected/{for(i=1;i<=NF;i++) if ($$i ~ /^[0-9A-Fa-f]{8}-/) print $$i}' | head -n1); \
 	if [ -z "$$device_id" ]; then echo "No connected iOS device found. Is your iPhone paired and unlocked?"; exit 1; fi; \
 	echo "Installing to device $$device_id..."; \
-	xcrun devicectl device install app --device $$device_id .build/Build/Products/Debug-iphoneos/bitebook.app; \
-	xcrun devicectl device process launch --device $$device_id willtrojniak.bitebook
+	xcrun devicectl device install app --device $$device_id ".build/Build/Products/Debug-iphoneos/bitebook Dev.app"; \
+	xcrun devicectl device process launch --device $$device_id willtrojniak.bitebook.dev
+
+# Build the Release configuration and install it to /Applications as the "official" copy,
+# separate from the dev build's data (distinct bundle ID -> distinct sandbox container).
+install:
+	xcodebuild -scheme bitebook -configuration Release -derivedDataPath .build build
+	rm -rf /Applications/bitebook.app
+	ditto .build/Build/Products/Release/bitebook.app /Applications/bitebook.app
 
 clean:
 	rm -rf ./.build
